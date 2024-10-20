@@ -145,19 +145,21 @@ function _select_category {
 }
 
 function _execute {
-	source "./runner.sh"
-	source "./accessibility.sh"
-	source "./capture.sh"
-	source "./content_providers.sh"
-	source "./control.sh"
-	source "./demo.sh"
-	source "./devices.sh"
-	source "./files.sh"
-	source "./packages.sh"
-	source "./permissions.sh"
-	source "./urls.sh"
-	source "./utils.sh"
-	source "./window_manager.sh"
+	local SCRIPT_DIR=$(dirname "$(readlink -f "$0")" )
+
+	source "${SCRIPT_DIR}/runner.sh"
+	source "${SCRIPT_DIR}/accessibility.sh"
+	source "${SCRIPT_DIR}/capture.sh"
+	source "${SCRIPT_DIR}/content_providers.sh"
+	source "${SCRIPT_DIR}/control.sh"
+	source "${SCRIPT_DIR}/demo.sh"
+	source "${SCRIPT_DIR}/devices.sh"
+	source "${SCRIPT_DIR}/files.sh"
+	source "${SCRIPT_DIR}/packages.sh"
+	source "${SCRIPT_DIR}/permissions.sh"
+	source "${SCRIPT_DIR}/urls.sh"
+	source "${SCRIPT_DIR}/utils.sh"
+	source "${SCRIPT_DIR}/window_manager.sh"
 
 	export CODE_CANCEL=10
 
