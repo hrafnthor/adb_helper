@@ -200,7 +200,7 @@ The helper will utilize the following environment variables if they are found:
 
 # Usage
 
-For full usage information see the [project wiki](https://github.com/hrafnthor/adb_helper/wiki).
+For full usage information see the [project wiki](https://github.com/hrafnthor/adb_helper/wiki/ADB-Helper-wiki).
 
 # License
 
