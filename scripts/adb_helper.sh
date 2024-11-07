@@ -109,7 +109,7 @@ function _validate_environment {
 
 function _select_category {
 	local operations selected_operation
-	operations=("Exit" "Devices" "Capture" "Content providers" "Notifications" "Files" "Demo" "Packages" "Accessibility" "Urls" "Permissions" "Window manager")
+	operations=("Exit" "Devices" "Capture" "Content providers" "Notifications" "Files" "Demo" "Packages" "Accessibility" "Urls" "Permissions" "Play services" "Window manager")
 
 	while true; do
 		local selected_operation
@@ -138,6 +138,8 @@ function _select_category {
 		elif [ "$selected_operation" == "${operations[10]}" ]; then
 			_select_permission_action
 		elif [ "$selected_operation" == "${operations[11]}" ]; then
+			_select_play_action
+		elif [ "$selected_operation" == "${operations[12]}" ]; then
 			_select_window_manager_action
 		else
 			error "${BASH_SOURCE[0]}, lineno: $LINENO: Unknown action selection! Exiting."
@@ -160,6 +162,7 @@ function _execute {
 	source "${SCRIPT_DIR}/notifications.sh"
 	source "${SCRIPT_DIR}/packages.sh"
 	source "${SCRIPT_DIR}/permissions.sh"
+	source "${SCRIPT_DIR}/play_services.sh"
 	source "${SCRIPT_DIR}/urls.sh"
 	source "${SCRIPT_DIR}/utils.sh"
 	source "${SCRIPT_DIR}/window_manager.sh"
