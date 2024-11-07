@@ -109,7 +109,7 @@ function _validate_environment {
 
 function _select_category {
 	local operations selected_operation
-	operations=("Exit" "Devices" "Capture" "Content providers" "Files" "Demo" "Packages" "Accessibility" "Urls" "Permissions" "Window manager")
+	operations=("Exit" "Devices" "Capture" "Content providers" "Notifications" "Files" "Demo" "Packages" "Accessibility" "Urls" "Permissions" "Window manager")
 
 	while true; do
 		local selected_operation
@@ -124,18 +124,20 @@ function _select_category {
 		elif [ "$selected_operation" == "${operations[3]}" ]; then
 			_select_content_provider_action
 		elif [ "$selected_operation" == "${operations[4]}" ]; then
-			_select_file_operation
+			_select_notification_action
 		elif [ "$selected_operation" == "${operations[5]}" ]; then
-			_select_demo_action
+			_select_file_operation
 		elif [ "$selected_operation" == "${operations[6]}" ]; then
-			_select_global_package_action
+			_select_demo_action
 		elif [ "$selected_operation" == "${operations[7]}" ]; then
-			_select_accessibility_action
+			_select_global_package_action
 		elif [ "$selected_operation" == "${operations[8]}" ]; then
-			_select_url_action
+			_select_accessibility_action
 		elif [ "$selected_operation" == "${operations[9]}" ]; then
-			_select_permission_action
+			_select_url_action
 		elif [ "$selected_operation" == "${operations[10]}" ]; then
+			_select_permission_action
+		elif [ "$selected_operation" == "${operations[11]}" ]; then
 			_select_window_manager_action
 		else
 			error "${BASH_SOURCE[0]}, lineno: $LINENO: Unknown action selection! Exiting."
@@ -155,6 +157,7 @@ function _execute {
 	source "${SCRIPT_DIR}/demo.sh"
 	source "${SCRIPT_DIR}/devices.sh"
 	source "${SCRIPT_DIR}/files.sh"
+	source "${SCRIPT_DIR}/notifications.sh"
 	source "${SCRIPT_DIR}/packages.sh"
 	source "${SCRIPT_DIR}/permissions.sh"
 	source "${SCRIPT_DIR}/urls.sh"
