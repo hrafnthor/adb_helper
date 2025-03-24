@@ -113,7 +113,7 @@ _select_package_action () {
 		fi
 
 		local operations
-		operations=("Cancel" "Select a different package" "Open package settings" "Info" "Logcat" "Run As" "Start main launcher" "Force stop" "Storage managment" "$disable_option" "Uninstall" "Pull APK" "Permissions"  "Databases" "Shared Preferences" "Content Providers" "Urls" "Oh look! A three-headed monkey")
+		operations=("Cancel" "Select a different package" "Open package settings" "Info" "Version" "Logcat" "Run As" "Start main launcher" "Force stop" "Storage managment" "$disable_option" "Uninstall" "Pull APK" "Permissions"  "Databases" "Shared Preferences" "Content Providers" "Urls" "Oh look! A three-headed monkey")
 
 		local selected_operation
 		_prompt_selection_menu "Select package action:" selected_operation "${operations[@]}"
@@ -134,35 +134,37 @@ _select_package_action () {
 			_open_package_settings "$package"
 		elif [ "$selected_operation" == "${operations[3]}" ]; then
 			_get_package_info "$package"
-		elif [ "$selected_operation" == "${operations[4]}" ]; then
-			_logcat_package "$package" "$package_uid"
+        elif [ "$selected_operation" == "${operations[4]}" ]; then
+            _get_package_version "$package"
 		elif [ "$selected_operation" == "${operations[5]}" ]; then
-			_run_as_package "$package"
+			_logcat_package "$package" "$package_uid"
 		elif [ "$selected_operation" == "${operations[6]}" ]; then
-			_launch_package "$package"
+			_run_as_package "$package"
 		elif [ "$selected_operation" == "${operations[7]}" ]; then
-			_force_stop_package "$package"
+			_launch_package "$package"
 		elif [ "$selected_operation" == "${operations[8]}" ]; then
+			_force_stop_package "$package"
+		elif [ "$selected_operation" == "${operations[9]}" ]; then
 			_select_package_storage_action "$package"
 		elif [ "$selected_operation" == "$option_package_enable" ]; then
 			_enable_package "$package"
 		elif [ "$selected_operation" == "$option_package_disable" ]; then
 			_disable_package "$package"
-		elif [ "$selected_operation" == "${operations[10]}" ]; then
-			_uninstall_package "$package"
 		elif [ "$selected_operation" == "${operations[11]}" ]; then
-			_pull_package_apk "$package"
+			_uninstall_package "$package"
 		elif [ "$selected_operation" == "${operations[12]}" ]; then
-			_select_package_permission_action "$package"
+			_pull_package_apk "$package"
 		elif [ "$selected_operation" == "${operations[13]}" ]; then
-			_select_package_database_action "$package"
+			_select_package_permission_action "$package"
 		elif [ "$selected_operation" == "${operations[14]}" ]; then
-			_select_package_shared_preference_action "$package"
+			_select_package_database_action "$package"
 		elif [ "$selected_operation" == "${operations[15]}" ]; then
-			_select_package_content_provider_action "$package"
+			_select_package_shared_preference_action "$package"
 		elif [ "$selected_operation" == "${operations[16]}" ]; then
-			_select_package_url_action "$package"
+			_select_package_content_provider_action "$package"
 		elif [ "$selected_operation" == "${operations[17]}" ]; then
+			_select_package_url_action "$package"
+		elif [ "$selected_operation" == "${operations[18]}" ]; then
 			_release_monkey "$package"
 		else
 			error "${BASH_SOURCE[0]}, lineno: $LINENO: Unknown action selection! Exiting."
@@ -269,6 +271,25 @@ _get_package_info () {
 	else
 		echo "$result" | less
 	fi
+}
+
+_get_package_version () {
+    if [ $# -ne 1 ]; then
+        _error "${BASH_SOURCE[0]}, lineno: $LINENO: Function expects a single input parameter!"
+        exit 1
+    fi
+
+    local package result result_code
+    package="$1"
+    result=$(_adb "shell dumpsys package ${package}" | grep versionName | cut -d'=' -f2)
+    result_code=$?
+
+    if [ $result_code -ne 0 ]; then
+        _error "${BASH_SOURCE[0]}, lineno: $LINENO: $result"
+        return $result_code
+    else
+        echo "$result"
+    fi
 }
 
 _run_as_package () {
@@ -785,18 +806,37 @@ _pull_package_apk () {
 		exit 1
 	fi
 
-	local package destination_path
+    local package destination_path
 	package="$1"
 
 	if [[ -v ADBH_PATH ]]; then
-		destination_path="$ADBH_PATH/apks"
+		destination_path="$ADBH_PATH/packages/${package}/apks"
 	else
 		read -e -r -p "Select where to store APK: " -i "$HOME/" destination_path
 	fi
 
-	destination_path="${destination_path}/${package}.apk"
+    local result result_code
+	result=$(mkdir --parent "$destination_path")
+	result_code=$?
 
-	local result result_code
+	if [ $result_code -ne 0 ]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: ${result}"
+		return $result_code
+	fi
+
+    local package_version
+    result=$(_get_package_version "${package}")
+    result_code=$?
+
+    if [ $result_code -ne 0 ]; then
+        _error "${BASH_SOURCE[0]}, lineno: $LINENO: ${result}"
+        return $result_code
+    else
+        package_version=$result
+    fi
+
+	destination_path="${destination_path}/${package}.${package_version}.apk"
+
 	result=$(_adb "shell pm list package -f ${package}" )
 	result_code=$?
 
