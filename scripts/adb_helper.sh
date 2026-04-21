@@ -126,7 +126,7 @@ function _select_category {
 		elif [ "$selected_operation" == "${operations[4]}" ]; then
 			_select_notification_action
 		elif [ "$selected_operation" == "${operations[5]}" ]; then
-			_select_file_operation
+			select_file_operation
 		elif [ "$selected_operation" == "${operations[6]}" ]; then
 			_select_demo_action
 		elif [ "$selected_operation" == "${operations[7]}" ]; then

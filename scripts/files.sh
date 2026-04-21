@@ -2,10 +2,10 @@
 # -----------------------------------------------------------------------------
 # This script contains functionality related to file operations.
 #
-# It's entry point is '_select_file_operation ()'
+# It's entry point is 'select_file_operation ()'
 # -----------------------------------------------------------------------------
 
-_select_file_operation () {
+select_file_operation () {
 	if [[ ! -v ADBH_SOURCE_FLAG ]]; then
 		_warning "No source currently selected!"
 
