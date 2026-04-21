@@ -118,7 +118,7 @@ function _select_category {
 		if [ "$selected_operation" == "Exit" ]; then
 			exit 0
 		elif [ "$selected_operation" == "${operations[1]}" ]; then
-			_select_device_actions
+			select_device_actions
 		elif [ "$selected_operation" == "${operations[2]}" ]; then
 			_select_capture_action
 		elif [ "$selected_operation" == "${operations[3]}" ]; then

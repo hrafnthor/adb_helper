@@ -353,12 +353,37 @@ _shell_as_package () {
 		exit 1
 	fi
 
-	local package
+	local result result_code result_array package local_source_flag local_serial_number
 	package="$1"
+
+	if [ "$ADBH_SOURCE_FLAG" != "-s" ]; then
+		_warning "This operation requires that a specific device be selected for use ('-d' flag will not work)!"
+		read -n 1 -s -r -p "Press any key to continue..."
+
+		select_serial_number result
+		result_code="$?"
+		IFS=' ' read -ra result_array <<< "$result"
+
+		if [  $result_code -eq "$CODE_CANCEL" ]; then
+			return "$CODE_CANCEL"
+		elif [ $result_code -ne 0 ]; then
+			error "${BASH_SOURCE[0]}, lineno: $LINENO: ${result_array[0]}"
+			return $result_code
+		fi
+
+		local_source_flag="${result_array[0]}"
+		local_serial_number="${result_array[1]}"
+	else
+		local_source_flag="${ADBH_SOURCE_FLAG}"
+		local_serial_number="${ADBH_SERIAL_NUMBER}"
+	fi
 
 	_warning "Requires package to be in debug mode!"
 
-	./adb_shell_expect.sh "${ADBH_SOURCE_FLAG}" "${ADBH_SERIAL_NUMBER}" "run-as $package"
+	local SCRIPT_DIR=
+	SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+	"${SCRIPT_DIR}/adb_shell_expect.sh" "${local_source_flag}" "${local_serial_number}" "run-as ${package}"
 }
 
 _force_stop_package () {
