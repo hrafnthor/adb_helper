@@ -3,10 +3,10 @@
 # This script contains functionality for direct device information retrieval
 # and interaction.
 #
-# It's entry point is _select_device_actions()
+# It's entry point is select_device_actions()
 # -----------------------------------------------------------------------------
 
-_select_device_actions () {
+select_device_actions () {
 	local operations
 	operations=("Cancel" "List devices" "Name sources" "Source lock" "List Android version" "Battery status" "Open shell" "Control")
 
@@ -35,6 +35,27 @@ _select_device_actions () {
 			continue
 		fi
 	done
+}
+
+select_serial_number () {
+	if [[ $# -lt 1 ]]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: Expects one input parameter to function!"
+		return 1
+	fi
+
+	local result_code outvar
+	outvar="$1"
+
+	selected="-s"
+	serial_number=$(_get_serial_numbers "select trigger")
+	result_code=$?
+
+	if [  $result_code -ne 0 ]; then
+		return "$result_code"
+	fi
+
+	results=("$selected" "$serial_number")
+	printf -v "$outvar" "%s " "${results[@]}"
 }
 
 _get_device_android_version () {
