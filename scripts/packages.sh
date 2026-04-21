@@ -444,7 +444,7 @@ _select_package_storage_action () {
 	package="$1"
 
 	local operations
-	operations=("Cancel" "Clear all" "Clear cache")
+	operations=("Cancel" "Pull file" "Clear cache" "Clear all")
 
 	while true; do
 		local selected_operation
@@ -453,9 +453,11 @@ _select_package_storage_action () {
 		if [ "$selected_operation" == "${operations[0]}" ]; then
 			return "$CODE_CANCEL"
 		elif [ "$selected_operation" == "${operations[1]}" ]; then
-			_clear_package_storage "$package"
+			_pull_package_file "$package"
 		elif [ "$selected_operation" == "${operations[2]}" ]; then
 			_clear_package_cache "$package"
+		elif [ "$selected_operation" == "${operations[3]}" ]; then
+			_clear_package_storage "$package"
 		else
 			error "${BASH_SOURCE[0]}, lineno: $LINENO: Unknown action selection! Exiting."
 			exit 1
@@ -1204,6 +1206,88 @@ _modify_package_shared_preference () {
 			break;
 		fi
 	done
+}
+
+_select_package_file_pull () {
+	if [ $# -ne 1 ]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: Function expects a single input parameter!"
+		exit 1
+	fi
+
+	local package result result_code
+	package="$1"
+
+	result=$(_adb "shell run-as ${package} find /data/data/${package}/ -type f" | fzf  --prompt="Select file or directory to pull: ")
+	result_code=$?
+
+	if [ $result_code -ne 0 ]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: $result"
+		return $result_code
+	elif [[ -z "$result" ]]; then
+		_warning "No files were found for package: ${package}"
+		return "$CODE_CANCEL"
+	fi
+
+	echo "$result"
+}
+
+_pull_package_file () {
+	if [ $# -ne 1 ]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: Function expects a single input parameter!"
+		exit 1
+	fi
+
+	local package result result_code
+	package="$1"
+
+	result=$(_select_package_file_pull "$package")
+	result_code=$?
+
+	if [ $result_code -ne 0 ]; then
+		return $result_code
+	fi
+
+	_info "${result}"
+
+	local destination_path source_path source_base_name
+	source_path="${result}"
+	source_base_name="$(basename "$source_path")"
+
+	if [[ -v ADBH_PATH ]]; then
+		destination_path="$ADBH_PATH/packages/${package}/pulled"
+	else
+		read -e -r -p "Select where to store the pulled file: " -i "$HOME/" destination_path
+	fi
+
+	if [ ! -d "$destination_path" ]; then
+		mkdir --parents "$destination_path"
+		_warning "- created local path: ${destination_path}"
+	fi
+
+	absolute_destination_path="${destination_path}/${source_base_name}"
+
+	_warning "- Pulling: '${source_path}' to '${absolute_destination_path}'"
+
+	result=$(_adb "shell run-as ${package} cat '${source_path}' > '${absolute_destination_path}'" )
+	result_code=$?
+
+	if [ $result_code -ne 0 ]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: ${result}"
+		return $result_code
+	fi
+
+	local options=("Yes" "No")
+	local answer
+
+	_prompt_selection_menu "Open destination path? " answer "${options[@]}"
+	result_code=$?
+
+	if [[ $result_code -ne 0 ]]; then
+		_error "${BASH_SOURCE[0]}, lineno: $LINENO: Selection failed!"
+		return $result_code
+	elif [[ "$answer" == "Yes" ]]; then
+		open "${destination_path}"
+	fi
 }
 
 _select_package_url_action () {
